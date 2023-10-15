@@ -25,6 +25,11 @@ from plotly.subplots import make_subplots
 st.title("Dignitas Ukraine Amazon Wishlist Donations")
 
 df = etl.read_data()
+
+# Anonymize data
+#df['Name'] = pd.factorize(df['Name'])[0]
+#df.to_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv', index=False)
+
 df.Cost = df.Cost.astype(int)
 start_date = df['Date'].min()
 end_date = df['Date'].max()
