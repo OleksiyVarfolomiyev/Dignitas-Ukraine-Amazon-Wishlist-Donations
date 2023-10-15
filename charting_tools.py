@@ -1,5 +1,6 @@
 import data_aggregation_tools as da
 import ETL as etl
+import plotly
 import plotly.graph_objects as go
 import data_aggregation_tools as da
 import plotly.express as px
