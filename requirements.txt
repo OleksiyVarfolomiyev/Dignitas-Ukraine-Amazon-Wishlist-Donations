@@ -3,3 +3,4 @@ plotly
 streamlit_folium
 streamlit
 datetime
+openpyxl
