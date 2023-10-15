@@ -10,7 +10,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-import import_ipynb
 import ETL as etl
 import data_aggregation_tools as da
 import charting_tools
@@ -39,9 +38,10 @@ multiple_donors = pd.DataFrame(value_counts[value_counts > 1])
 multiple_donors.to_excel('data/multiple_donors.xlsx', index=False)
 
 st.dataframe(pd.DataFrame({
+    'Donors': [ df['Name'].nunique() ],
+    'Multiple Donors': [ len(multiple_donors) ],
     'Donations Value': [ etl.format_money(df['Total Cost'].sum()) ],
     'Donations Count': [ df['Total Cost'].count() ],
-    'Multiple Donors': [ len(multiple_donors) ],
     'Products Donated': [ df['Quantity'].sum() ],
     'Days' : [ days ]
 }))
