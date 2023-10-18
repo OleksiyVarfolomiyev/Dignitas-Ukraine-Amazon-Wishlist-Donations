@@ -40,30 +40,10 @@ multiple_donors.to_excel('data/multiple_donors.xlsx', index=False)
 st.dataframe(pd.DataFrame({
     'Donations Value': [ etl.format_money(df['Total Cost'].sum()) ],
     'Donations Count': [ df['Total Cost'].count() ],
-    'Returning Donors': [ len(multiple_donors) ],
+    'Multiple Donors': [ len(multiple_donors) ],
     'Products Donated': [ df['Quantity'].sum() ],
     'Days' : [ days ]
 }))
 
-# Stack bar plot of Donations by Category by Period
-donations_by_category = df.groupby(['Date', 'Product'])['Total Cost'].sum().reset_index()
-
-selected_period = st.selectbox(' ', ['Monthly', 'Weekly', 'Daily'])
-
-fig = charting_tools.chart_by_period(donations_by_category, donations_by_category.Product.unique(), selected_period[0], 
-                     f'{selected_period} Donations')
-
-st.plotly_chart(fig, use_container_width=True)
-
-# Ring plots of Donations by Category
 donations_by_cat_Cost = pd.DataFrame(df.groupby('Product')['Total Cost'].sum().sort_values(ascending=False))
-donations_by_cat_Quantity = pd.DataFrame(df.groupby('Product')['Quantity'].sum())
-donations_by_cat = donations_by_cat_Cost.merge(donations_by_cat_Quantity, on='Product')
-
-fig1 = charting_tools.pie_plot(donations_by_cat_Quantity.sort_values(by='Quantity', ascending=False).head(5), 'Quantity', 'Donations by Main Products (Count)', False)
-fig2 = charting_tools.pie_plot(donations_by_cat_Cost.head(5), 'Total Cost', 'Donations by Main Cost Categories', False)
-fig = charting_tools.subplot_horizontal(fig1, fig2, 1, 2, 'domain', 'domain', 'Donations by Main Products (Count)', 'Donations by Main Products (Cost)', False)
-
-st.plotly_chart(fig, use_container_width=True)
-
-st.markdown("Visit [Dignitas Ukraine](https://dignitas.fund/)")
+st.dataframe(donations_by_cat_Cost)

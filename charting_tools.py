@@ -23,7 +23,19 @@ def fig_add_mean(fig, val, col):
         name='mean',
         line=dict(color='blue', dash = 'dot')  
     )
-    
+
+def pie_plot(data, col, title, show):
+    """Ring plot"""
+    fig = px.pie(data, 
+             values = col, 
+             names = data.index, 
+             hole=0.5,
+             title = title)
+    if show:
+        fig.show(renderer="notebook")
+    else:
+        return fig
+
 def subplot_horizontal(fig1, fig2, rows, cols, type1, type2, title1, title2, show):
     fig = make_subplots(rows=rows, cols=cols, 
                     specs=[[{'type': type1}, {'type': type2}]], 
@@ -36,57 +48,6 @@ def subplot_horizontal(fig1, fig2, rows, cols, type1, type2, title1, title2, sho
     if show:
         fig.show(renderer="notebook")
     else:
-        return fig
-    
-def subplot_vertical(val, fig1, fig2, rows, cols, type1, type2, barmode, title1, title2, show):
-    fig = make_subplots(rows=rows, cols=cols, 
-                    specs=[[{'type': type1}], [{'type': type2}]], 
-                    subplot_titles=[title1, title2])
-    
-    if not val.empty:
-        fig_add_mean(fig, val, 'UAH')
-    
-    fig.update_layout(
-    barmode = barmode,
-    legend=dict(orientation='h', x=0.2, y=-0.1))
-    
-    for trace in fig1.data:
-        fig.add_trace(trace, row=1, col=1)
-
-    for trace in fig2.data:
-        fig.add_trace(trace, row=2, col=1)
-    
-    fig.update_layout(grid={'columns': cols, 'rows': rows, 'pattern': "independent"})
-    fig.update_layout(height=800)
-        
-    if show:
-        fig.show(renderer="notebook")
-    else:
-        return fig
-    
-def pie_plot(data, col, title, show):
-
-    fig = px.pie(data, 
-             values = col, 
-             names = data.index, 
-             hole=0.5,
-             title = title)
-    if show:
-        fig.show(renderer="notebook")
-    else:
-        return fig
-
-def bar_plot(val, col, fig_title, show):
-    fig = px.bar(val, x = val.index, y = col, 
-            color = col, 
-            text_auto = '.2s',
-            title = fig_title
-            )
-    fig_add_mean(fig, val, col)
-    hide_axis_title(fig)
-    if show:
-        fig.show(renderer="notebook")
-    else: 
         return fig
 
 def stack_bar_plot(df, title, show):
@@ -123,3 +84,10 @@ def stack_bar_plot(df, title, show):
         fig.show(renderer="notebook")
     else: 
         return fig
+
+def chart_by_period(ds, categories, period, title):
+    """Stack bar plot of Donations Total Cost by Product by Period (d, w, m)"""
+    by_category = da.sum_by_period_by_category(categories, period, ds, 'Product').fillna(0)
+    if period == 'w':
+        by_category['Date'] = by_category['Date'].astype(str).str.split('/').str[0]
+    return stack_bar_plot(by_category, title, False)

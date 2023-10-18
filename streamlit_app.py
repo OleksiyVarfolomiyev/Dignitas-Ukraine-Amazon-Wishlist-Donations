@@ -10,6 +10,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+import import_ipynb
 import ETL as etl
 import data_aggregation_tools as da
 import charting_tools
@@ -67,3 +68,4 @@ fig = charting_tools.subplot_horizontal(fig1, fig2, 1, 2, 'domain', 'domain', 'D
 st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("Visit [Dignitas Ukraine](https://dignitas.fund/)")
+
