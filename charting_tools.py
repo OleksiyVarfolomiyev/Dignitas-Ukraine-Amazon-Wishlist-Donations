@@ -30,7 +30,9 @@ def pie_plot(data, col, title, show):
              values = col, 
              names = data.index, 
              hole=0.5,
-             title = title)
+             title = title
+             )
+    fig.update_layout(legend=dict(orientation='h', x=0.2, y=-0.1))
     if show:
         fig.show(renderer="notebook")
     else:
