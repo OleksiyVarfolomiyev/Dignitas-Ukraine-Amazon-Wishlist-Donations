@@ -24,11 +24,11 @@ def fig_add_mean(fig, val, col):
         line=dict(color='blue', dash = 'dot')  
     )
 
-def pie_plot(data, col, title, show):
+def pie_plot(data, col, names, title, show):
     """Ring plot"""
     fig = px.pie(data, 
              values = col, 
-             names = data.index, 
+             names = names, 
              hole=0.5,
              title = title
              )
@@ -68,7 +68,7 @@ def stack_bar_plot(df, title, show):
     fig.update_layout(
     barmode='stack',
     title = title,
-    legend=dict(orientation='h', x=0.2, y=-0.1),
+    #legend=dict(orientation='h', x=0.2, y=-0.1),
     # Add a horizontal line at the mean value
         shapes=[
             dict(

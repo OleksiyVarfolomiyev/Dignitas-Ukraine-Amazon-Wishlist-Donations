@@ -3,7 +3,7 @@ import datetime as dt
 
 def sum_category_by_date(category_value, period, data, category):
     return pd.DataFrame(data[((
-            data[category] == category_value))]['Total Cost'].groupby(
+            data[category] == category_value))]['Cost'].groupby(
             data['Date'].dt.to_period(period)).sum().reset_index(name = category_value))
 
 

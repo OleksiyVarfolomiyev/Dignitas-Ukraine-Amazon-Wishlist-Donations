@@ -1,14 +1,4 @@
 import streamlit as st; st.set_page_config(layout="wide")
-st.markdown(
-    """
-    <style>
-    .reportview-container {
-        max-width: 100%;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 import ETL as etl
 import data_aggregation_tools as da
@@ -23,53 +13,100 @@ import plotly.io as pio
 from plotly.subplots import make_subplots
 
 st.title("Dignitas Ukraine **Amazon Wishlist Donations**")
+def etl_data():
+    df = etl.read_data()
+    start_date = df['Date'].min()
+    end_date = df['Date'].max()
+    df = etl.extract_relevant_txs(df, start_date, end_date)
+    donations_by_category = df.groupby(['Date', 'Product'])['Cost'].sum().reset_index()
+    donations_by_category_quantity = df.groupby(['Date', 'Product'])['Quantity'].sum().reset_index()
+    return df, donations_by_category, donations_by_category_quantity, start_date, end_date
 
-df = etl.read_data()
-df.Cost = df.Cost.astype(int)
-start_date = df['Date'].min()
-end_date = df['Date'].max()
-df = etl.extract_relevant_txs(df, start_date, end_date)
+# first run anonymizes the data
+df, donations_by_category, donations_by_category_quantity, start_date, end_date = etl_data()
 
-# metrics
-days = (dt.date.today() - start_date.date()).days
+def show_metrics(df, start_date):
+    """ Show metrics"""
+    days = (dt.date.today() - start_date.date()).days
+    donors = df['Name'].nunique()
+    # multiple donors
+    name_count = df['Name'].value_counts()
+    multiple_donors = pd.DataFrame(name_count[name_count > 1])
+    # donations today
+    max_date = df[df['Date'] == df['Date'].max()]
+    donors_today = max_date['Name'].nunique()
+    donated_today = etl.format_money(max_date['Cost'].sum())
+    # new donors today
+    max_date_names = pd.DataFrame({'Name' : max_date['Name'].unique()})
+    before_max_date_names = pd.DataFrame({'Name': df[df['Date'] < df['Date'].max()]['Name'].unique()})
+    merged_df = max_date_names.merge(before_max_date_names, on='Name', how='left', indicator=True)
+    new_donors_today = len( merged_df[merged_df['_merge'] == 'left_only'].drop(columns='_merge') )
+    # new multiple donors
+    name_count = df[df['Date'] < df['Date'].max()]['Name'].value_counts()
+    multiple_donors_before_today = pd.DataFrame(name_count[name_count > 1])
+    new_multiple_donors = len(multiple_donors) - len(multiple_donors_before_today)
 
-df['Total Cost'] = df['Quantity'] * df['Cost']
-value_counts = df['Name'].value_counts()
-multiple_donors = pd.DataFrame(value_counts[value_counts > 1])
-multiple_donors.to_excel('data/multiple_donors.xlsx', index=False)
+    if new_multiple_donors == 0:
+        new_multiple_donors = ''
+    if new_donors_today == 0:
+        new_donors_today = ''
+        
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.metric("Days", days, "1", delta_color="normal")
+    col2.metric("Donations", etl.format_money(df['Cost'].sum()) , donated_today, delta_color="normal")
+    col3.metric("Products Donated", len(df), len(max_date), delta_color="normal")
+    col4.metric("Donors", donors, new_donors_today, delta_color="normal")
+    col5.metric("Donated multiple products", len(multiple_donors), new_multiple_donors, delta_color="normal")
 
-max_date_row = df[df['Date'] == df['Date'].max()]
-donations_today = etl.format_money(max_date_row['Total Cost'].iloc[0])
-max_date_names = max_date_row['Name'].unique()
-returning_donors_max_date = len(set(max_date_names).intersection(multiple_donors))
+show_metrics(df, start_date)
 
-col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Days", days, "1", delta_color="normal")
-col2.metric("Donations", etl.format_money(df['Total Cost'].sum()) , donations_today, delta_color="normal")
-col3.metric("Donations Count", df['Total Cost'].count(), int(max_date_row['Date'].count()), delta_color="normal")
-col4.metric("Products Donated", df['Quantity'].sum(), int(max_date_row['Quantity'].sum()), delta_color="normal")
-col5.metric("Returning Donors", len(multiple_donors), returning_donors_max_date, delta_color="normal")
+def show_donations_by_period(df, donations_by_category):
+    """Stack bar plot of Donations by Category by Period"""
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        selected_period = st.selectbox(' ', ['Monthly', 'Weekly', 'Daily', 'Yearly'])
+    fig = charting_tools.chart_by_period(donations_by_category, donations_by_category.Product.unique(), selected_period[0], '')
+    st.plotly_chart(fig, use_container_width=True)
 
-# Stack bar plot of Donations by Category by Period
+show_donations_by_period(df, donations_by_category)
 
-col1, col2, col3, col4, col5 = st.columns(5)
-with col1:
-    selected_period = st.selectbox(' ', ['Monthly Donations', 'Weekly Donations', 'Daily Donations'])
+def show_donations_by_category(donations_by_category, donations_by_category_quantity):
+    """ Show donations by category"""
+    col0, col1, col2, col3, col4 = st.columns(5)
+    with col0:
+            period = st.selectbox(' ', ['Month', 'Week', 'Day', 'Year'])
 
-donations_by_category = df.groupby(['Date', 'Product'])['Total Cost'].sum().reset_index()
-fig = charting_tools.chart_by_period(donations_by_category, donations_by_category.Product.unique(), selected_period[0], '')
-st.plotly_chart(fig, use_container_width=True)
+    if period == 'Month':
+        donations = donations_by_category[donations_by_category['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]
+        donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]
+        
+    elif period == 'Week':
+        donations = donations_by_category[donations_by_category['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(weeks=1)]
+        donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(weeks=1)]
+    elif period == 'Day':
+        day = donations_by_category['Date'].max()
+        donations = donations_by_category[donations_by_category['Date'] == donations_by_category.Date.max()]
+        donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] == donations_by_category_quantity.Date.max()]
+    elif period == 'Year':
+        donations = donations_by_category[donations_by_category['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(years=1)]
+        donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(years=1)]
+    else:
+        donations = donations_by_category
+        donations_quantity = donations_by_category_quantity
+    
+    donations_cost_by_cat_by_period = donations.groupby('Product')['Cost'].sum().reset_index()
+    donations_quantity_by_cat_by_period = donations_quantity.groupby('Product')['Quantity'].sum().reset_index()
+    
+    fig1 = charting_tools.pie_plot(donations_quantity_by_cat_by_period,
+                                   'Quantity', 'Product',
+                                   'Donations (Count)', False)
+    
+    fig2 = charting_tools.pie_plot(donations_cost_by_cat_by_period,
+                                   'Cost', 'Product',
+                                   'Donations (Cost)', False)
+    fig = charting_tools.subplot_horizontal(fig1, fig2, 1, 2, 'domain', 'domain', 'Donations (Count)', 'Donations (Cost)', False)
+    st.plotly_chart(fig, use_container_width=True)
 
-# Ring plots of Donations by Category
+    st.markdown("Visit [Dignitas Ukraine](https://dignitas.fund/)")
 
-donations_by_cat_Cost = pd.DataFrame(df.groupby('Product')['Total Cost'].sum().sort_values(ascending=False))
-donations_by_cat_Quantity = pd.DataFrame(df.groupby('Product')['Quantity'].sum())
-donations_by_cat = donations_by_cat_Cost.merge(donations_by_cat_Quantity, on='Product')
-
-fig1 = charting_tools.pie_plot(donations_by_cat_Quantity.sort_values(by='Quantity', ascending=False).head(5), 'Quantity', 'Donations by Main Products (Count)', False)
-fig2 = charting_tools.pie_plot(donations_by_cat_Cost.head(5), 'Total Cost', 'Donations by Main Cost Categories', False)
-fig = charting_tools.subplot_horizontal(fig1, fig2, 1, 2, 'domain', 'domain', 'Donations by Main Products (Count)', 'Donations by Main Products (Cost)', False)
-st.plotly_chart(fig, use_container_width=True)
-
-st.markdown("Visit [Dignitas Ukraine](https://dignitas.fund/)")
-
+show_donations_by_category(donations_by_category, donations_by_category_quantity)

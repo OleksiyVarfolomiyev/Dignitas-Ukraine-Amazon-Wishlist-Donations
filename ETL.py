@@ -16,7 +16,7 @@ def extract_relevant_txs(df, start_date, end_date):
     if (start_date != None) | (end_date != None):
         df = df[df['Date'].dt.date >= start_date.date()]
         df = df[df['Date'].dt.date <= end_date.date()]
-
+    # group Water Purification products
     values_to_check = ['Lifestraw', 'Water Tables']
     condition = df['Product'].str.contains('|'.join(values_to_check), case=False)
     df.loc[condition, 'Product'] = 'Water Purification'
