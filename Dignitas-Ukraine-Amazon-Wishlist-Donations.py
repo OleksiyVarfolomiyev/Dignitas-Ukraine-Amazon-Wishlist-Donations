@@ -15,6 +15,10 @@ from plotly.subplots import make_subplots
 st.title("Dignitas Ukraine **Amazon Wishlist Donations**")
 def etl_data():
     df = etl.read_data()
+    #Anonymize data
+    #df['Name'] = pd.factorize(df['Name'])[0]
+    #df.to_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv', index=False)
+    
     start_date = df['Date'].min()
     end_date = df['Date'].max()
     df = etl.extract_relevant_txs(df, start_date, end_date)
