@@ -1,14 +1,16 @@
 import pandas as pd
 
 def format_money(value):
+    '''Format money'''
     return '${:,.0f}'.format(float(value))
 
 def read_data(nrows = None):
-    dtypes = {'Name' : 'str', 'Product': 'str', 'Quantity' : 'int', 'Cost' : 'str'}
-    df = pd.read_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv', 
-                     usecols=['Date', 'Product', 'Quantity', 'Cost', 'Name'],
+    '''Read data from csv file'''
+    dtypes = {'Name' : 'str', 'Product': 'str', 'Quantity' : 'int', 'Total Cost' : 'str'}
+    df = pd.read_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv',
+                     usecols=['Date', 'Product', 'Quantity', 'Total Cost', 'Name'],
                      dtype=dtypes, parse_dates=['Date'])
-    df.Cost = df['Cost'].str.strip('$').astype(float)
+    df['Total Cost'] = df['Total Cost'].replace({'\$': '', ',': ''}, regex=True).astype(float)
     return df
 
 def extract_relevant_txs(df, start_date, end_date):
@@ -28,4 +30,3 @@ def extract_top_donors(df):
     top_donors['Quantity'] = top_donors['Quantity'].astype(int)
     top_donors['Total Cost'] = top_donors['Total Cost'].map(format_money)
     return top_donors
-    

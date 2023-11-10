@@ -1,4 +1,4 @@
-Name,Date,Product,Quantity,Cost
+Name,Date,Product,Quantity,Total Cost
 0,2023-02-26,Water Tables - 100 tables,1,15.99
 0,2023-02-26,Rain Ponchos,1,19.99
 0,2023-02-26,Foldable Tablet Stand for Bed,1,25.75
@@ -87,3 +87,10 @@ Name,Date,Product,Quantity,Cost
 34,2023-10-22,"Power Bank - 30,000mAh",1,39.99
 5,2023-10-30,"Power Bank - 30,000mAh",1,39.99
 5,2023-10-30,SanDisk 128GB Memory Card,1,12.99
+35,2023-11-07,Radiomaster TX16S Battey 5000mAh,4,99.96
+35,2023-11-07,SP128 Mini Water Filtration System,4,120.2
+35,2023-11-07,Rain Ponchos,4,79.96
+35,2023-11-07,Mavic 3 Pro,1,2199.0
+35,2023-11-07,Lenovo Tab M10 Plus (3rd Gen),1,191.79
+35,2023-11-07,SanDisk 128GB Memory Card,8,103.92
+35,2023-11-07,"Power Bank - 30,000mAh",4,159.96
