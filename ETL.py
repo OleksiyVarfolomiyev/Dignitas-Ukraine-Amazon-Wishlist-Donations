@@ -6,10 +6,24 @@ def format_money(value):
 
 def read_data(nrows = None):
     '''Read data from csv file'''
-    dtypes = {'Name' : 'str', 'Product': 'str', 'Quantity' : 'int', 'Total Cost' : 'str'}
-    df = pd.read_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv',
-                     usecols=['Date', 'Product', 'Quantity', 'Total Cost', 'Name'],
-                     dtype=dtypes, parse_dates=['Date'])
+    # dtypes = {'Name' : 'str', 'Product': 'str', 'Quantity' : 'int', 'Total Cost' : 'str'}
+    # df = pd.read_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv',
+    #                  usecols=['Date', 'Product', 'Quantity', 'Total Cost', 'Name'],
+    #                  dtype=dtypes, parse_dates=['Date'])
+    import streamlit as st
+    from streamlit_gsheets import GSheetsConnection
+
+    # Create a connection object.
+    conn = st.experimental_connection("gsheets", type=GSheetsConnection)
+
+    dtypes = {'Name' : 'str', 'Product': 'str', 'Total Cost' : 'str'}
+    df = conn.read(
+        worksheet="Data",
+        ttl="10m",
+        usecols=['Date', 'Product', 'Quantity', 'Total Cost', 'Name'],
+                dtype=dtypes, parse_dates=['Date']
+    )
+
     df['Total Cost'] = df['Total Cost'].replace({'\$': '', ',': ''}, regex=True).astype(float)
     return df
 
