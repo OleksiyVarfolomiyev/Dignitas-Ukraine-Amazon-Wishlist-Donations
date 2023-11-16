@@ -17,7 +17,7 @@ def etl_data():
     df = etl.read_data()
     #Anonymize data
     df['Name'] = pd.factorize(df['Name'])[0]
-    df.to_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv', index=False)
+    #df.to_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv', index=False)
 
     start_date = df['Date'].min()
     #start_date = pd.to_datetime('2023-10-01')
@@ -69,7 +69,7 @@ show_metrics(df, start_date)
 def show_donations_by_period(df, donations_by_category):
     """Stack bar plot of Donations by Category by Period"""
     col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
+    with col3:
         selected_period = st.selectbox(' ', ['Monthly', 'Weekly', 'Daily', 'Yearly'])
     fig = charting_tools.chart_by_period(donations_by_category, donations_by_category.Product.unique(), selected_period[0], '')
     st.plotly_chart(fig, use_container_width=True)
@@ -79,7 +79,7 @@ show_donations_by_period(df, donations_by_category)
 def show_donations_by_category(donations_by_category, donations_by_category_quantity):
     """ Show donations by category"""
     col0, col1, col2, col3, col4 = st.columns(5)
-    with col0:
+    with col2:
             period = st.selectbox(' ', ['Month', 'Week', 'Day', 'Year'])
 
     if period == 'Month':
@@ -115,6 +115,6 @@ def show_donations_by_category(donations_by_category, donations_by_category_quan
 
 show_donations_by_category(donations_by_category, donations_by_category_quantity)
 
-col0, col1= st.columns(2)
-with col0: st.markdown("[Dignitas Ukraine Site](https://dignitas.fund/)")
-with col1: st.markdown("[Dignitas Ukraine Financials](https://dignitas-ukraine.streamlit.app/)")
+col0, col1, col2, col3 = st.columns(2)
+with col1: st.markdown("[Dignitas Ukraine Site](https://dignitas.fund/)")
+with col2: st.markdown("[Dignitas Ukraine Financials](https://dignitas-ukraine.streamlit.app/)")

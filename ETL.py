@@ -23,7 +23,7 @@ def read_data(nrows = None):
         usecols=['Date', 'Product', 'Quantity', 'Total Cost', 'Name'],
                 dtype=dtypes, parse_dates=['Date']
     )
-
+    df = df.dropna(subset=['Total Cost'])
     df['Total Cost'] = df['Total Cost'].replace({'\$': '', ',': ''}, regex=True).astype(float)
     return df
 
