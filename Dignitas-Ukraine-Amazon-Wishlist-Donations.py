@@ -12,7 +12,24 @@ import plotly.figure_factory as ff
 import plotly.io as pio
 from plotly.subplots import make_subplots
 
+dark_theme = """
+    <style>
+        body {
+            background-color: #121212; /* Dark background color */
+            color: white; /* Text color */
+        }
+        .stButton>button {
+            background-color: #4CAF50; /* Green button color */
+            color: white;
+        }
+    </style>
+"""
+
+# Apply the dark theme using st.markdown
+st.markdown(dark_theme, unsafe_allow_html=True)
+
 st.title("Dignitas Ukraine **Amazon Wishlist Donations**")
+@st.cache_data
 def etl_data():
     """ETL data"""
     start_date = None
@@ -114,9 +131,35 @@ show_donations_by_category(donations_by_category, donations_by_category_quantity
 df['Total Cost'] = '$' + df['Total Cost'].astype(str)
 df.set_index('Date', inplace=True)
 st.dataframe(df[[ 'Name', 'Product', 'Quantity', 'Total Cost']].sort_values(by= 'Date', ascending=False), use_container_width=True)
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+# Donate button
+import webbrowser
+url_to_open = "https://www.dignitas.fund/amazon"
+col1, col2, col3 = st.columns(3)
+
+import streamlit.components.v1 as components
+
+def ChangeButtonColour(wgt_txt, wch_hex_colour = '12px'):
+    htmlstr = """<script>var elements = window.parent.document.querySelectorAll('*'), i;
+                for (i = 0; i < elements.length; ++i)
+                    { if (elements[i].innerText == |wgt_txt|)
+                        { elements[i].style.color ='""" + wch_hex_colour + """'; } }</script>  """
+
+    htmlstr = htmlstr.replace('|wgt_txt|', "'" + wgt_txt + "'")
+    components.html(f"{htmlstr}", height=0, width=0)
+
+# Create the green "Donate" button
+if col2.button("Donate", key="donate_button", help="Click to donate"):
+    webbrowser.open_new_tab(url_to_open)
+
+ChangeButtonColour('Donate', '#4E9F3D')
+
 # Links
-col0, col1, col2, col3 = st.columns(4)
+st.write("---")
+col1, col2, col3 = st.columns(3)
 with col1: st.markdown("[Dignitas Ukraine Site](https://dignitas.fund/)")
 with col2: st.markdown("[Dignitas Ukraine Financials](https://dignitas-ukraine.streamlit.app/)")
-
+with col3: st.markdown(f"[{'Contact'}](mailto:{'info@dignitas.fund'})")
 
