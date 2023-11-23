@@ -112,7 +112,8 @@ def show_donations_by_category(donations_by_category, donations_by_category_quan
 show_donations_by_category(donations_by_category, donations_by_category_quantity)
 # Donations list
 df['Total Cost'] = '$' + df['Total Cost'].astype(str)
-st.dataframe(df[['Date', 'Name', 'Product', 'Quantity', 'Total Cost']].sort_values(by= 'Date', ascending=False), use_container_width=True)
+df.set_index('Date', inplace=True)
+st.dataframe(df[[ 'Name', 'Product', 'Quantity', 'Total Cost']].sort_values(by= 'Date', ascending=False), use_container_width=True)
 # Links
 col0, col1, col2, col3 = st.columns(4)
 with col1: st.markdown("[Dignitas Ukraine Site](https://dignitas.fund/)")
