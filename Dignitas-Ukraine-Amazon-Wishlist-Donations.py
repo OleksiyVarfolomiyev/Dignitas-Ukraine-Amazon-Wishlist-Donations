@@ -14,41 +14,37 @@ from plotly.subplots import make_subplots
 
 st.title("Dignitas Ukraine **Amazon Wishlist Donations**")
 def etl_data():
-    df = etl.read_data()
-    #Anonymize data
-    df['Name'] = pd.factorize(df['Name'])[0]
-    #df.to_csv('data/Amazon Wishlist - In-Kind Gift - Data.csv', index=False)
-
-    start_date = df['Date'].min()
-    #start_date = pd.to_datetime('2023-10-01')
-    end_date = df['Date'].max()
-    df = etl.extract_relevant_txs(df, start_date, end_date)
+    """ETL data"""
+    start_date = None
+    end_date =  None
+    df = etl.etl(start_date, end_date)
 
     donations_by_category = df.groupby(['Date', 'Product'])['Total Cost'].sum().reset_index()
     donations_by_category_quantity = df.groupby(['Date', 'Product'])['Quantity'].sum().reset_index()
     return df, donations_by_category, donations_by_category_quantity, start_date, end_date
 
-# first run anonymizes the data
 df, donations_by_category, donations_by_category_quantity, start_date, end_date = etl_data()
-
 def show_metrics(df, start_date):
     """ Show metrics"""
-    days = (dt.date.today() - start_date.date()).days
-    donors = df['Name'].nunique()
+    if start_date == None:
+        start_date = df['Date'].min()
+
+    days = (dt.date.today() - start_date).days
+    donors = df['ID'].nunique()
     # multiple donors
-    name_count = df['Name'].value_counts()
+    name_count = df['ID'].value_counts()
     multiple_donors = pd.DataFrame(name_count[name_count > 1])
     # donations today
     max_date = df[df['Date'] == df['Date'].max()]
-    donors_today = max_date['Name'].nunique()
+    donors_today = max_date['ID'].nunique()
     donated_today = etl.format_money(max_date['Total Cost'].sum())
     # new donors today
-    max_date_names = pd.DataFrame({'Name' : max_date['Name'].unique()})
-    before_max_date_names = pd.DataFrame({'Name': df[df['Date'] < df['Date'].max()]['Name'].unique()})
-    merged_df = max_date_names.merge(before_max_date_names, on='Name', how='left', indicator=True)
+    max_date_names = pd.DataFrame({'ID' : max_date['ID'].unique()})
+    before_max_date_names = pd.DataFrame({'ID': df[df['Date'] < df['Date'].max()]['ID'].unique()})
+    merged_df = max_date_names.merge(before_max_date_names, on='ID', how='left', indicator=True)
     new_donors_today = len( merged_df[merged_df['_merge'] == 'left_only'].drop(columns='_merge') )
     # new multiple donors
-    name_count = df[df['Date'] < df['Date'].max()]['Name'].value_counts()
+    name_count = df[df['Date'] < df['Date'].max()]['ID'].value_counts()
     multiple_donors_before_today = pd.DataFrame(name_count[name_count > 1])
     new_multiple_donors = len(multiple_donors) - len(multiple_donors_before_today)
 
@@ -114,7 +110,12 @@ def show_donations_by_category(donations_by_category, donations_by_category_quan
     st.plotly_chart(fig, use_container_width=True)
 
 show_donations_by_category(donations_by_category, donations_by_category_quantity)
-
+# Donations list
+df['Total Cost'] = '$' + df['Total Cost'].astype(str)
+st.dataframe(df[['Date', 'Name', 'Product', 'Quantity', 'Total Cost']].sort_values(by= 'Date', ascending=False), use_container_width=True)
+# Links
 col0, col1, col2, col3 = st.columns(4)
 with col1: st.markdown("[Dignitas Ukraine Site](https://dignitas.fund/)")
 with col2: st.markdown("[Dignitas Ukraine Financials](https://dignitas-ukraine.streamlit.app/)")
+
+
