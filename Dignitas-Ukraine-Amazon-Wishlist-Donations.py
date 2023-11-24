@@ -12,22 +12,6 @@ import plotly.figure_factory as ff
 import plotly.io as pio
 from plotly.subplots import make_subplots
 
-dark_theme = """
-    <style>
-        body {
-            background-color: #121212; /* Dark background color */
-            color: white; /* Text color */
-        }
-        .stButton>button {
-            background-color: #4CAF50; /* Green button color */
-            color: white;
-        }
-    </style>
-"""
-
-# Apply the dark theme using st.markdown
-st.markdown(dark_theme, unsafe_allow_html=True)
-
 st.title("Dignitas Ukraine **Amazon Wishlist Donations**")
 @st.cache_data
 def etl_data():
@@ -154,7 +138,7 @@ def ChangeButtonColour(wgt_txt, wch_hex_colour = '12px'):
 if col2.button("Donate", key="donate_button", help="Click to donate"):
     webbrowser.open_new_tab(url_to_open)
 
-ChangeButtonColour('Donate', '#4E9F3D')
+#ChangeButtonColour('Donate', '#4E9F3D')
 
 # Links
 st.write("---")
@@ -162,4 +146,3 @@ col1, col2, col3 = st.columns(3)
 with col1: st.markdown("[Dignitas Ukraine Site](https://dignitas.fund/)")
 with col2: st.markdown("[Dignitas Ukraine Financials](https://dignitas-ukraine.streamlit.app/)")
 with col3: st.markdown(f"[{'Contact'}](mailto:{'info@dignitas.fund'})")
-
