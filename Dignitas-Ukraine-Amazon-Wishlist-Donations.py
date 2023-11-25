@@ -32,21 +32,19 @@ def show_metrics(df, start_date):
 
     days = (dt.date.today() - start_date).days
     donors = df['ID'].nunique()
-    # multiple donors
+
+    # donations today
+    max_date = df['Date'].max()
+    donated_today = etl.format_money(df[df.Date == max_date]['Total Cost'].sum())
+    # new donors today
+    max_date_names = pd.DataFrame({'ID' : df[df.Date == max_date]['ID'].unique()})
+    before_max_date_names = pd.DataFrame({'ID': df[df['Date'] < max_date]['ID'].unique()})
+    new_donors_today = len(max_date_names.merge(before_max_date_names, on='ID', how='left', indicator=True))
+    # new multiple donors
     name_count = df['ID'].value_counts()
     multiple_donors = pd.DataFrame(name_count[name_count > 1])
-    # donations today
-    max_date = df[df['Date'] == df['Date'].max()]
-    donors_today = max_date['ID'].nunique()
-    donated_today = etl.format_money(max_date['Total Cost'].sum())
-    # new donors today
-    max_date_names = pd.DataFrame({'ID' : max_date['ID'].unique()})
-    before_max_date_names = pd.DataFrame({'ID': df[df['Date'] < df['Date'].max()]['ID'].unique()})
-    merged_df = max_date_names.merge(before_max_date_names, on='ID', how='left', indicator=True)
-    new_donors_today = len( merged_df[merged_df['_merge'] == 'left_only'].drop(columns='_merge') )
-    # new multiple donors
-    name_count = df[df['Date'] < df['Date'].max()]['ID'].value_counts()
-    multiple_donors_before_today = pd.DataFrame(name_count[name_count > 1])
+    name_count_before_today = df[df['Date'] < max_date]['ID'].value_counts()
+    multiple_donors_before_today = pd.DataFrame(name_count_before_today[name_count_before_today > 1])
     new_multiple_donors = len(multiple_donors) - len(multiple_donors_before_today)
 
     if new_multiple_donors == 0:
@@ -56,8 +54,8 @@ def show_metrics(df, start_date):
 
     col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Days", days, "1", delta_color="normal")
-    col2.metric("Donations", etl.format_money(df['Total Cost'].sum()) , donated_today, delta_color="normal")
-    col3.metric("Products Donated", len(df), len(max_date), delta_color="normal")
+    col2.metric("Donations Value", etl.format_money(df['Total Cost'].sum()) , donated_today, delta_color="normal")
+    col3.metric("Products Donated", int(df.Quantity.sum()), int(df[df.Date == max_date]['Quantity'].sum()), delta_color="normal")
     col4.metric("Donors", donors, new_donors_today, delta_color="normal")
     col5.metric("Donated multiple products", len(multiple_donors), new_multiple_donors, delta_color="normal")
 
@@ -125,18 +123,18 @@ col1, col2, col3 = st.columns(3)
 
 import streamlit.components.v1 as components
 
-def ChangeButtonColour(wgt_txt, wch_hex_colour = '12px'):
-    htmlstr = """<script>var elements = window.parent.document.querySelectorAll('*'), i;
-                for (i = 0; i < elements.length; ++i)
-                    { if (elements[i].innerText == |wgt_txt|)
-                        { elements[i].style.color ='""" + wch_hex_colour + """'; } }</script>  """
+# def ChangeButtonColour(wgt_txt, wch_hex_colour = '12px'):
+#     htmlstr = """<script>var elements = window.parent.document.querySelectorAll('*'), i;
+#                 for (i = 0; i < elements.length; ++i)
+#                     { if (elements[i].innerText == |wgt_txt|)
+#                         { elements[i].style.color ='""" + wch_hex_colour + """'; } }</script>  """
 
-    htmlstr = htmlstr.replace('|wgt_txt|', "'" + wgt_txt + "'")
-    components.html(f"{htmlstr}", height=0, width=0)
+#     htmlstr = htmlstr.replace('|wgt_txt|', "'" + wgt_txt + "'")
+#     components.html(f"{htmlstr}", height=0, width=0)
 
-# Create the green "Donate" button
-if col2.button("Donate", key="donate_button", help="Click to donate"):
-    webbrowser.open_new_tab(url_to_open)
+# # Create the green "Donate" button
+# if col2.button("Donate", key="donate_button", help="Click to donate"):
+#     webbrowser.open_new_tab(url_to_open)
 
 #ChangeButtonColour('Donate', '#4E9F3D')
 
