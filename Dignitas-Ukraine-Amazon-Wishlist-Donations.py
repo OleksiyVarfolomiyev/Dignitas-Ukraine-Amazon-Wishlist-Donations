@@ -25,6 +25,7 @@ def etl_data():
     return df, donations_by_category, donations_by_category_quantity, start_date, end_date
 
 df, donations_by_category, donations_by_category_quantity, start_date, end_date = etl_data()
+
 def show_metrics(df, start_date):
     """ Show metrics"""
     if start_date == None:
@@ -64,8 +65,21 @@ show_metrics(df, start_date)
 def show_donations_by_period(df, donations_by_category):
     """Stack bar plot of Donations by Category by Period"""
     col1, col2, col3, col4, col5 = st.columns(5)
-    with col3:
+    with col5:
+        timespan = st.selectbox(' ',['Since launch', '1 Year ', '1 Month ', '3 Months ', '6 Months '])
+    with col1:
         selected_period = st.selectbox(' ', ['Monthly', 'Weekly', 'Daily', 'Yearly'])
+
+    if timespan == '1 Month ':
+        donations_by_category = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]
+    elif timespan == '3 Months ':
+        donations_by_category = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(months=3)]
+    elif timespan == '6 Months ':
+        donations_by_category = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(months=6)]
+    elif timespan == '1 Year ':
+        donations_by_category = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(years=1)]
+    else:
+        donations_by_category = donations_by_category
     fig = charting_tools.chart_by_period(donations_by_category, donations_by_category.Product.unique(), selected_period[0], '')
     st.plotly_chart(fig, use_container_width=True)
 
@@ -132,10 +146,10 @@ import streamlit.components.v1 as components
 #     htmlstr = htmlstr.replace('|wgt_txt|', "'" + wgt_txt + "'")
 #     components.html(f"{htmlstr}", height=0, width=0)
 
-# # Create the green "Donate" button
-# if col2.button("Donate", key="donate_button", help="Click to donate"):
-#     webbrowser.open_new_tab(url_to_open)
-
+# # Create the "Donate" button
+if col2.button("Donate", key="donate_button", help="Click to donate"):
+     webbrowser.open_new_tab(url_to_open)
+# Change the button colour to green
 #ChangeButtonColour('Donate', '#4E9F3D')
 
 # Links
