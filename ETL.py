@@ -21,7 +21,8 @@ def etl(start_date, end_date, nrows = None):
         )
 
     df = df.dropna(subset=['Total Cost'])
-
+    df = df[(df['Total Cost'] != 0) & (df['Quantity'] > 0) ]
+    df['Name'] = df['Name'].str.capitalize()
     if (start_date != None) | (end_date != None):
         df = df[df['Date'] >= start_date]
         df = df[df['Date'] <= end_date]
