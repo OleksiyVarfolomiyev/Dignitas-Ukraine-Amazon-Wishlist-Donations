@@ -90,6 +90,6 @@ def stack_bar_plot(df, title, show):
 def chart_by_period(df, categories, period, title):
     """Stack bar plot of Donations Total Cost by Product by Period (d, w, m)"""
     by_category = da.sum_by_period_by_category(categories, period, df, 'Product').fillna(0)
-    if period == 'w':
+    if period == 'W':
         by_category['Date'] = by_category['Date'].astype(str).str.split('/').str[0]
     return stack_bar_plot(by_category, title, False)

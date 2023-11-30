@@ -64,11 +64,29 @@ show_metrics(df, start_date)
 
 def show_donations_by_period(df, donations_by_category):
     """Stack bar plot of Donations by Category by Period"""
+
     col1, col2, col3, col4, col5 = st.columns(5)
-    with col5:
-        timespan = st.selectbox(' ',['Since launch', '1 Year ', '1 Month ', '3 Months ', '6 Months '])
+    #if 'selected_period' not in st.session_state:
+    #        st.session_state.selected_period = 'Monthly'
     with col1:
         selected_period = st.selectbox(' ', ['Monthly', 'Weekly', 'Daily', 'Yearly'])
+
+
+    if 'timespan' not in st.session_state:
+            st.session_state.timespan = 'Since launch '
+
+    if selected_period == 'Daily':
+        st.session_state.timespan = '1 Month '
+    elif selected_period == 'Weekly':
+        st.session_state.timespan = '3 Months '
+    elif selected_period == 'Yearly':
+        st.session_state.timespan = 'Since launch '
+
+    with col5:
+        timespan = st.selectbox(' ',['Since launch', '1 Year ', '1 Month ', '3 Months ', '6 Months '],
+                                index=['Since launch ', '1 Year ', '1 Month ', '3 Months ', '6 Months '].index(st.session_state.timespan))
+
+
 
     if timespan == '1 Month ':
         donations_by_category = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]
@@ -80,6 +98,7 @@ def show_donations_by_period(df, donations_by_category):
         donations_by_category = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(years=1)]
     else:
         donations_by_category = donations_by_category
+
     fig = charting_tools.chart_by_period(donations_by_category, donations_by_category.Product.unique(), selected_period[0], '')
     st.plotly_chart(fig, use_container_width=True)
 
@@ -92,18 +111,18 @@ def show_donations_by_category(donations_by_category, donations_by_category_quan
             period = st.selectbox(' ', ['Month', 'Week', 'Day', 'Year'])
 
     if period == 'Month':
-        donations = donations_by_category[donations_by_category['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]
+        donations = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]
         donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]
 
     elif period == 'Week':
-        donations = donations_by_category[donations_by_category['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(weeks=1)]
+        donations = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(weeks=1)]
         donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(weeks=1)]
     elif period == 'Day':
         day = donations_by_category['Date'].max()
         donations = donations_by_category[donations_by_category['Date'] == donations_by_category.Date.max()]
         donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] == donations_by_category_quantity.Date.max()]
     elif period == 'Year':
-        donations = donations_by_category[donations_by_category['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(years=1)]
+        donations = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(years=1)]
         donations_quantity = donations_by_category_quantity[donations_by_category_quantity['Date'] >= pd.Timestamp.now().floor('D') - pd.DateOffset(years=1)]
     else:
         donations = donations_by_category

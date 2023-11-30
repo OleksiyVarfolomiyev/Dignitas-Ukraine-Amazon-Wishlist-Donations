@@ -1,28 +1,28 @@
 import pandas as pd
+import streamlit as st
+from streamlit_gsheets import GSheetsConnection
+import datetime as dt
 
 def format_money(value):
     '''Format money'''
     return '${:,.0f}'.format(float(value))
 
 def etl(start_date, end_date, nrows = None):
-    '''Read data from csv file'''
-    import streamlit as st
-    from streamlit_gsheets import GSheetsConnection
-    import datetime as dt
+    '''Read data from gsheet and transform it'''
 
     conn = st.connection("gsheets", type=GSheetsConnection)
 
     dtypes = {'Name' : 'str', 'Product': 'str', 'Total Cost' : 'str'}
-    df = conn.read(
-        worksheet="Data",
-        ttl="10m",
+    df = conn.read(worksheet="Data", ttl="10m",
         usecols=['Date', 'Name', 'Product', 'Quantity', 'Total Cost'],
-                dtype=dtypes, parse_dates=['Date']
+                dtype = dtypes, parse_dates = ['Date']
         )
-
-    df = df.dropna(subset=['Total Cost'])
+    # drop incomplete rows
+    df = df.dropna(subset = ['Total Cost'])
     df = df[(df['Total Cost'] != 0) & (df['Quantity'] > 0) ]
+
     df['Name'] = df['Name'].str.capitalize()
+
     if (start_date != None) | (end_date != None):
         df = df[df['Date'] >= start_date]
         df = df[df['Date'] <= end_date]
@@ -31,10 +31,10 @@ def etl(start_date, end_date, nrows = None):
     df['ID'] = pd.factorize(df['Name'])[0]
     # Extract first name
     df['Name'] = df['Name'].str.split().str[0]
-
+    # transform Total Cost to float and Date to date type
     df['Total Cost'] = df['Total Cost'].replace({'\$': '', ',': ''}, regex=True).astype(float)
     df['Date'] = df['Date'].dt.date
-
+    # group donation by date, donator ID and product
     df_grouped = df.groupby(['Date', 'ID', 'Product'])[['Quantity', 'Total Cost']].sum().reset_index()
     df = df_grouped.merge(df[['ID', 'Name']].drop_duplicates(), on=['ID'], how='left')
 
