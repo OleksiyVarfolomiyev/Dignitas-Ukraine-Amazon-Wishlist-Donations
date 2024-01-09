@@ -18,6 +18,10 @@ def etl_data():
     """ETL data"""
     start_date = None
     end_date =  None
+    #start_date = pd.to_datetime('2023-12-01')
+    #end_date = pd.to_datetime('2023-12-31')
+    start_date = dt.datetime(2023, 2, 26)
+    end_date = pd.Timestamp.today()
     df = etl.etl(start_date, end_date)
 
     donations_by_category = df.groupby(['Date', 'Product'])['Total Cost'].sum().reset_index()
@@ -31,7 +35,9 @@ def show_metrics(df, start_date):
     if start_date == None:
         start_date = df['Date'].min()
 
-    days = (dt.date.today() - start_date).days
+    #days = (dt.date.today() - start_date).days + 1
+    days = (pd.Timestamp.today() - start_date).days + 1
+
     donors = df['ID'].nunique()
 
     # donations today
@@ -66,15 +72,12 @@ def show_donations_by_period(df, donations_by_category):
     """Stack bar plot of Donations by Category by Period"""
 
     col1, col2, col3, col4, col5 = st.columns(5)
-    #if 'selected_period' not in st.session_state:
-    #        st.session_state.selected_period = 'Monthly'
     with col1:
         selected_period = st.selectbox(' ', ['Monthly', 'Weekly', 'Daily', 'Yearly'])
 
-
     if 'timespan' not in st.session_state:
             st.session_state.timespan = 'Since launch '
-
+    # adjust timespan w.r.t. selected_period for the chart readability
     if selected_period == 'Daily':
         st.session_state.timespan = '1 Month '
     elif selected_period == 'Weekly':
@@ -85,8 +88,6 @@ def show_donations_by_period(df, donations_by_category):
     with col5:
         timespan = st.selectbox(' ',['Since launch', '1 Year ', '1 Month ', '3 Months ', '6 Months '],
                                 index=['Since launch ', '1 Year ', '1 Month ', '3 Months ', '6 Months '].index(st.session_state.timespan))
-
-
 
     if timespan == '1 Month ':
         donations_by_category = donations_by_category[donations_by_category['Date'] > pd.Timestamp.now().floor('D') - pd.DateOffset(months=1)]

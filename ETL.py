@@ -13,10 +13,15 @@ def etl(start_date, end_date, nrows = None):
     conn = st.connection("gsheets", type=GSheetsConnection)
 
     dtypes = {'Name' : 'str', 'Product': 'str', 'Total Cost' : 'str'}
-    df = conn.read(worksheet="Data", ttl="10m",
+    df = conn.read(worksheet="2023", ttl="10m",
         usecols=['Date', 'Name', 'Product', 'Quantity', 'Total Cost'],
                 dtype = dtypes, parse_dates = ['Date']
         )
+    df1 = conn.read(worksheet="2024", ttl="10m",
+        usecols=['Date', 'Name', 'Product', 'Quantity', 'Total Cost'],
+                dtype = dtypes, parse_dates = ['Date']
+        )
+    df = pd.concat([df, df1], ignore_index=True)
     # drop incomplete rows
     df = df.dropna(subset = ['Total Cost'])
     df = df[(df['Total Cost'] != 0) & (df['Quantity'] > 0) ]
